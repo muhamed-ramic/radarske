@@ -1,6 +1,6 @@
-import { 
-  ScrapedRadarResponse, 
-  TARGET_CITIES 
+import {
+  ScrapedRadarResponse,
+  TARGET_CITIES
 } from '../data/fallbackData';
 
 export const CACHE_STORAGE_KEY = 'bihamk_radari_daily_cache_v1';
@@ -53,6 +53,7 @@ export function getCachedRadarData(cantonId: string = '93'): CacheMetadata | nul
     console.error('Failed reading cache from localStorage:', err);
     return null;
   }
+  console.log("finished caching");
 }
 
 export function saveRadarDataToCache(data: ScrapedRadarResponse): void {
@@ -110,7 +111,7 @@ export function simulateNextDayInCache(): boolean {
 }
 
 export async function fetchRadarData(
-  cantonId: string = '93', 
+  cantonId: string = '93',
   forceRefresh: boolean = false
 ): Promise<{ data: ScrapedRadarResponse; fromCache: boolean; cacheInfo: CacheMetadata | null }> {
   const cached = getCachedRadarData(cantonId);
@@ -129,7 +130,7 @@ export async function fetchRadarData(
   console.log(`[RadarService] Cache ${!cached ? 'missing' : 'expired/forced'}. Fetching fresh data from bihamk.ba...`);
 
   const res = await fetch(`/api/scrape?canton=${encodeURIComponent(cantonId)}${forceRefresh ? '&force=true' : ''}`);
-  
+
   if (!res.ok) {
     let errorDetail = `HTTP ${res.status}`;
     try {
@@ -138,7 +139,7 @@ export async function fetchRadarData(
     } catch {
       // ignore json parse error
     }
-    
+
     // If we have an existing cache from earlier, use it with notice rather than breaking
     if (cached) {
       console.warn(`[RadarService] Fetch failed (${errorDetail}), using existing cache from ${cached.date}`);
@@ -153,7 +154,7 @@ export async function fetchRadarData(
   }
 
   const freshData: ScrapedRadarResponse = await res.json();
-  
+
   // Save to daily cache
   saveRadarDataToCache(freshData);
   const updatedCache = getCachedRadarData(cantonId);
@@ -166,8 +167,8 @@ export async function fetchRadarData(
 }
 
 export function isTargetCity(cityName: string): boolean {
-  return TARGET_CITIES.some(tc => 
-    cityName.toLowerCase().includes(tc.toLowerCase()) || 
+  return TARGET_CITIES.some(tc =>
+    cityName.toLowerCase().includes(tc.toLowerCase()) ||
     tc.toLowerCase().includes(cityName.toLowerCase())
   );
 }
