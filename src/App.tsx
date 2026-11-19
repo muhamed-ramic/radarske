@@ -5,17 +5,17 @@ import { CantonAndCitySelector } from './components/CantonAndCitySelector';
 import { AnnouncedRadarList } from './components/AnnouncedRadarList';
 import { StationaryRadarList } from './components/StationaryRadarList';
 import { CacheInspectorModal } from './components/CacheInspectorModal';
-import { 
-  fetchRadarData, 
-  getCachedRadarData, 
-  clearRadarCache, 
+import {
+  fetchRadarData,
+  getCachedRadarData,
+  clearRadarCache,
   simulateNextDayInCache,
-  CacheMetadata 
+  CacheMetadata
 } from './services/radarService';
-import { 
-  ScrapedRadarResponse, 
-  DEFAULT_CANTONS, 
-  TARGET_CITIES 
+import {
+  ScrapedRadarResponse,
+  DEFAULT_CANTONS,
+  TARGET_CITIES
 } from './data/fallbackData';
 import { Shield, Camera, Clock, CheckCircle, Info } from 'lucide-react';
 
@@ -134,7 +134,7 @@ export function App() {
               <CheckCircle size={18} className="text-green-600" />
               <span>{notice}</span>
             </div>
-            <button 
+            <button
               onClick={() => setNotice(null)}
               style={{ fontSize: '0.75rem', color: '#15803d', fontWeight: 700 }}
             >
@@ -144,11 +144,11 @@ export function App() {
         )}
 
         {/* Cache status info banner */}
-        <CacheBanner
+        {/* <CacheBanner
           cacheInfo={cacheInfo}
           onSimulateTomorrow={handleSimulateTomorrow}
           onForceRefresh={handleForceRefresh}
-        />
+        /> */}
 
         {/* Stats Row */}
         <div className="stats-row">
@@ -260,7 +260,7 @@ export function App() {
       }}>
         <div className="container">
           <p>
-            Podaci se preuzimaju sa službene stranice <strong>bihamk.ba/spi/radari</strong>. 
+            Podaci se preuzimaju sa službene stranice <strong>bihamk.ba/spi/radari</strong>.
             Aplikacija je optimizovana za gradove Srednjobosanskog kantona (Bugojno, Gornji Vakuf, Donji Vakuf, Travnik, Novi Travnik, Vitez).
           </p>
           <p style={{ marginTop: '0.25rem', opacity: 0.8 }}>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldAlert, Clock, MapPin, ExternalLink, AlertCircle } from 'lucide-react';
+import { ShieldAlert, Clock, MapPin, ExternalLink, AlertCircle, Navigation } from 'lucide-react';
 import { AnnouncedRadar } from '../data/fallbackData';
 
 interface AnnouncedRadarListProps {
@@ -41,7 +41,7 @@ export const AnnouncedRadarList: React.FC<AnnouncedRadarListProps> = ({
           Nema najavljenih radarskih kontrola za odabrani filter
         </h3>
         <p style={{ fontSize: '0.875rem' }}>
-          {selectedCity 
+          {selectedCity
             ? `Za grad ${selectedCity} policijska uprava danas nije najavila radarske kontrole.`
             : 'Nema dostupnih najavljenih kontrola za odabrani kanton.'}
         </p>
@@ -78,8 +78,8 @@ export const AnnouncedRadarList: React.FC<AnnouncedRadarListProps> = ({
                     )}`;
 
                     return (
-                      <div 
-                        key={idx} 
+                      <div
+                        key={idx}
                         className="timeline-item"
                         style={activeNow ? { borderLeftColor: '#ef4444', backgroundColor: '#fef2f2' } : {}}
                       >
@@ -88,30 +88,31 @@ export const AnnouncedRadarList: React.FC<AnnouncedRadarListProps> = ({
                           {entry.timeFrom} - {entry.timeTo}
                         </div>
 
-                        <div style={{ flex: 1 }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
                           <div className="timeline-location">
-                            {<b>{entry.location.replace(/(<br \/>)/gi, ' - ')}</b>}
+                            {entry.location
+                              .split(/<br\s*\/>/gi)
+                              .map(s => s.trim())
+                              .filter(Boolean)
+                              .map((loc, i) => (
+                                <span key={i} className="location-chip">
+                                  <Navigation size={10} style={{ flexShrink: 0, marginTop: 1 }} />
+                                  {loc}
+                                </span>
+                              ))}
                           </div>
                           {activeNow && (
-                            <span style={{ 
-                              display: 'inline-block', 
-                              marginTop: 4, 
-                              fontSize: '0.7rem', 
-                              color: '#dc2626', 
-                              fontWeight: 800, 
-                              background: '#fee2e2', 
-                              padding: '1px 6px', 
-                              borderRadius: 4 
-                            }}>
-                              ● TRENUTNO AKTIVNO
+                            <span className="active-badge">
+                              <span className="active-dot" />
+                              TRENUTNO AKTIVNO
                             </span>
                           )}
                         </div>
 
-                        <a 
-                          href={mapsUrl} 
-                          target="_blank" 
-                          rel="noreferrer" 
+                        <a
+                          href={mapsUrl}
+                          target="_blank"
+                          rel="noreferrer"
                           title="Pronađi na Google Mapi"
                           style={{ color: '#94a3b8', padding: 2 }}
                         >
