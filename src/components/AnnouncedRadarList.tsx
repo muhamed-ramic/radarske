@@ -1,6 +1,6 @@
 import React from 'react';
 import { ShieldAlert, Clock, MapPin, ExternalLink, AlertCircle, Navigation } from 'lucide-react';
-import { AnnouncedRadar } from '../data/fallbackData';
+import { AnnouncedRadar, RadarEntry } from '../data/fallbackData';
 
 interface AnnouncedRadarListProps {
   radars: AnnouncedRadar[];
@@ -13,20 +13,16 @@ export const AnnouncedRadarList: React.FC<AnnouncedRadarListProps> = ({
 }) => {
   // Helper to check if a time slot is active right now
   const isTimeSlotActive = (timeFrom: string, timeTo: string): boolean => {
-    try {
-      const now = new Date();
-      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const now = new Date();
+    console.log("timeFrom", timeFrom);
+    console.log("timeTo", timeTo);
+    const currentHour = now.getHours();
+    const currentMinutes = now.getMinutes();
 
-      const [fH, fM] = timeFrom.split(':').map(Number);
-      const [tH, tM] = timeTo.split(':').map(Number);
+    const [fH, fM] = timeFrom.split(':').map(Number);
+    const [tH, tM] = timeTo.split(':').map(Number);
 
-      const startMinutes = fH * 60 + fM;
-      const endMinutes = tH * 60 + tM;
-
-      return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
-    } catch {
-      return false;
-    }
+    return currentHour >= fH && currentHour <= tH;
   };
 
   const filteredRadars = selectedCity
@@ -66,58 +62,40 @@ export const AnnouncedRadarList: React.FC<AnnouncedRadarListProps> = ({
             {/* Timetable / Locations */}
             <div className="station-body">
               <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: '0.75rem' }}>
-                Raspored i lokacije kontrola ({radar.entries.length} lokacija)
+                Raspored i lokacije kontrola
               </div>
 
               {radar.entries.length > 0 ? (
                 <div className="timeline-list">
                   {radar.entries.map((entry, idx) => {
-                    const activeNow = isTimeSlotActive(entry.timeFrom, entry.timeTo);
-                    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                      `${entry.location}, ${radar.city}, BiH`
-                    )}`;
-
                     return (
                       <div
                         key={idx}
                         className="timeline-item"
-                        style={activeNow ? { borderLeftColor: '#ef4444', backgroundColor: '#fef2f2' } : {}}
                       >
-                        <div className="timeline-time">
-                          <Clock size={11} style={{ display: 'inline', marginRight: 4 }} />
-                          {entry.timeFrom} - {entry.timeTo}
-                        </div>
-
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div className="timeline-location">
-                            {entry.location
+                            {entry.fullText.replace(/(<\/p>|<\/div>|<p>)/gi, " ")
                               .split(/<br\s*\/>/gi)
                               .map(s => s.trim())
                               .filter(Boolean)
-                              .map((loc, i) => (
-                                <span key={i} className="location-chip">
-                                  <Navigation size={10} style={{ flexShrink: 0, marginTop: 1 }} />
-                                  {loc}
-                                </span>
-                              ))}
-                          </div>
-                          {activeNow && (
-                            <span className="active-badge">
-                              <span className="active-dot" />
-                              TRENUTNO AKTIVNO
-                            </span>
-                          )}
-                        </div>
+                              .map((loc, i) => {
+                                const activeNow = isTimeSlotActive(loc.substring(0, loc.indexOf("do") - 1), loc.substring(loc.indexOf("do") + 2, loc.indexOf("sati")));
+                                const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                                  `${loc.replace(/\d+|-/g, "")}, ${radar.city}, BiH`
+                                )}`;
 
-                        <a
-                          href={mapsUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          title="Pronađi na Google Mapi"
-                          style={{ color: '#94a3b8', padding: 2 }}
-                        >
-                          <ExternalLink size={14} />
-                        </a>
+                                return (
+                                  <span key={i} className="location-chip">
+                                    <a target="_blank" style={{ textDecoration: "none", color: "black" }} href={mapsUrl}>
+                                      <Navigation size={10} style={{ flexShrink: 0, marginTop: 1 }} />
+                                      <span style={{ fontWeight: activeNow ? 700 : 400 }}>{loc}</span>
+                                    </a>
+                                  </span>
+                                )
+                              })}
+                          </div>
+                        </div>
                       </div>
                     );
                   })}
