@@ -518,6 +518,26 @@ input, select {
   background: #e2e8f0;
 }
 
+.location-chip--active {
+  background: #dcfce7;
+  border-color: #22c55e;
+  color: #166534;
+}
+
+.location-chip--active:hover {
+  background: #bbf7d0;
+}
+
+.location-chip--past {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #991b1b;
+}
+
+.location-chip--past:hover {
+  background: #fecaca;
+}
+
 .active-badge {
   display: inline-flex;
   align-items: center;

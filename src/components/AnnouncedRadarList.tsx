@@ -11,18 +11,42 @@ export const AnnouncedRadarList: React.FC<AnnouncedRadarListProps> = ({
   radars,
   selectedCity
 }) => {
-  // Helper to check if a time slot is active right now
-  const isTimeSlotActive = (timeFrom: string, timeTo: string): boolean => {
+  // Parses "HH:MM" (or "HH.MM" / "HH") into minutes since midnight
+  const toMinutes = (time: string): number | null => {
+    const match = time.trim().match(/(\d{1,2})(?:[:.](\d{1,2}))?/);
+    if (!match) return null;
+    const hours = Number(match[1]);
+    const minutes = match[2] ? Number(match[2]) : 0;
+    if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
+    return hours * 60 + minutes;
+  };
+
+  const getNowMinutes = (): number => {
     const now = new Date();
-    console.log("timeFrom", timeFrom);
-    console.log("timeTo", timeTo);
-    const currentHour = now.getHours();
-    const currentMinutes = now.getMinutes();
+    return now.getHours() * 60 + now.getMinutes();
+  };
 
-    const [fH, fM] = timeFrom.split(':').map(Number);
-    const [tH, tM] = timeTo.split(':').map(Number);
+  // Helper to check if a time slot is active right now (hours and minutes)
+  const isTimeSlotActive = (timeFrom: string, timeTo: string): boolean => {
+    const from = toMinutes(timeFrom);
+    const to = toMinutes(timeTo);
+    if (from === null || to === null) return false;
+    const current = getNowMinutes();
+    // Slot crosses midnight (e.g. 23:00 do 01:00)
+    if (to < from) {
+      return current >= from || current <= to;
+    }
+    return current >= from && current <= to;
+  };
 
-    return currentHour >= fH && currentHour <= tH;
+  // Helper to check if a time slot has already ended
+  const isTimeSlotPast = (timeFrom: string, timeTo: string): boolean => {
+    const from = toMinutes(timeFrom);
+    const to = toMinutes(timeTo);
+    if (from === null || to === null) return false;
+    // A slot that crosses midnight ends after the day is over, so it is never past today
+    if (to < from) return false;
+    return getNowMinutes() > to;
   };
 
   const filteredRadars = selectedCity
@@ -80,14 +104,20 @@ export const AnnouncedRadarList: React.FC<AnnouncedRadarListProps> = ({
                               .map(s => s.trim())
                               .filter(Boolean)
                               .map((loc, i) => {
-                                const activeNow = isTimeSlotActive(loc.substring(0, loc.indexOf("do") - 1), loc.substring(loc.indexOf("do") + 2, loc.indexOf("sati")));
+                                const doIdx = loc.indexOf("do");
+                                const hasTime = doIdx > 0;
+                                const timeFrom = hasTime ? loc.substring(0, doIdx - 1) : "";
+                                const timeTo = hasTime ? loc.substring(doIdx + 2, loc.indexOf("sati") > doIdx ? loc.indexOf("sati") : undefined) : "";
+                                const activeNow = hasTime && isTimeSlotActive(timeFrom, timeTo);
+                                const pastSlot = hasTime && !activeNow && isTimeSlotPast(timeFrom, timeTo);
+                                const chipClass = `location-chip${activeNow ? " location-chip--active" : pastSlot ? " location-chip--past" : ""}`;
                                 const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
                                   `${loc.replace(/\d+|-/g, "")}, ${radar.city}, BiH`
                                 )}`;
 
                                 return (
-                                  <span key={i} className="location-chip">
-                                    <a target="_blank" style={{ textDecoration: "none", color: "black" }} href={mapsUrl}>
+                                  <span key={i} className={chipClass}>
+                                    <a target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", color: "inherit" }} href={mapsUrl}>
                                       <Navigation size={10} style={{ flexShrink: 0, marginTop: 1 }} />
                                       <span style={{ fontWeight: activeNow ? 700 : 400 }}>{loc}</span>
                                     </a>
